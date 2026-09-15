@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl python3
     && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json* ./
 COPY prisma ./prisma
-RUN npm install
+RUN npm ci && npm cache clean --force
 
 # ---- build ----
 FROM node:20-bookworm-slim AS build

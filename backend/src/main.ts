@@ -39,7 +39,7 @@ async function bootstrap() {
   });
 
   const port = process.env.PORT ?? 3001;
-  // Close Prisma / BullMQ connections cleanly on SIGTERM/SIGINT so a rolling
+  // Close Prisma connections cleanly on SIGTERM/SIGINT so a rolling
   // (re)deploy never leaves half-open TCP connections behind.
   app.enableShutdownHooks();
   await app.listen(port);

@@ -10,7 +10,6 @@ suivi des plans d'action RH.
 - **Frontend** : Next.js (App Router) + TypeScript + Tailwind + shadcn/ui-style components + Recharts
 - **Backend** : NestJS (REST API) + Prisma
 - **Base de données** : PostgreSQL
-- **File d'attente (Phase 2)** : Redis + BullMQ (câblé, pas encore de traitement)
 - **Conteneurisation** : Docker / docker-compose
 
 ## Démarrage
@@ -77,7 +76,7 @@ de production requiert donc :
 
 1. **Des secrets aléatoires forts** pour `JWT_SECRET` et `JWT_REFRESH_SECRET`
    (ex. `openssl rand -hex 32`), un mot de passe Postgres dédié, et des valeurs réelles pour
-   `DATABASE_URL`, `REDIS_URL`.
+   `DATABASE_URL`.
 2. **Les URLs réelles du frontend** : `CORS_ORIGIN` = domaine(s) servis en HTTPS (liste séparée
    par des virgules), `NEXT_PUBLIC_API_URL` = URL HTTPS de l'API. Le backend refuse de démarrer
    sans `CORS_ORIGIN` - il n'y a pas de repli « autoriser toutes les origines ».
@@ -86,9 +85,9 @@ de production requiert donc :
    IP réelle (`X-Forwarded-For`) et non l'IP du proxy.
 4. **TLS** terminé par le proxy devant le frontend (https) — le cookie de rafraîchissement est
    `secure` dès que `NODE_ENV=production`.
-5. **Ne pas exposer Postgres/Redis publiquement** : retirez les blocs `ports` des services
-   `postgres` et `redis` du compose (ou utilisez un network interne) — seul le trafic entre
-   conteneurs doit les atteindre.
+5. **Ne pas exposer Postgres publiquement** : retirez le bloc `ports` du service `postgres`
+   du compose (ou utilisez un network interne) — seul le trafic entre conteneurs doit
+   l'atteindre.
 
 Déploiement minimal :
 
@@ -119,7 +118,7 @@ npm test
 ## Feuille de route
 
 1. **Phase 1 (ce dépôt)** : effectif, évaluations, scoring, tableau de bord, plans d'action RH.
-2. **Phase 2** : exports Excel/PDF consolidés, notifications (BullMQ, déjà câblé), interface du
+2. **Phase 2** : exports Excel/PDF consolidés, notifications (file d'attente à câbler), interface du
    journal d'audit, tendances historiques.
 3. **Phase 3** : à définir avec les retours terrain de la Phase 1/2.
 

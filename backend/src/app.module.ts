@@ -15,7 +15,6 @@ import { ScoringModule } from './scoring/scoring.module';
 import { BaremesModule } from './baremes/baremes.module';
 import { PlansActionModule } from './plans-action/plans-action.module';
 import { DashboardModule } from './dashboard/dashboard.module';
-import { QueueModule } from './queue/queue.module';
 import { ExportModule } from './export/export.module';
 
 @Module({
@@ -25,7 +24,6 @@ import { ExportModule } from './export/export.module';
     // limit (see AuthController) since it's the one endpoint worth brute-forcing.
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 60 }]),
     PrismaModule,
-    QueueModule,
     ScoringModule,
     AuthModule,
     UsersModule,
