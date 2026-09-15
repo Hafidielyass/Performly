@@ -31,6 +31,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certifi
     && rm -rf /var/lib/apt/lists/*
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nestjs
 
+# package.json is needed so `npm run start:deploy` (migrate + seed + serve) resolves
+# here exactly as it does on a PaaS Node runtime.
+COPY --chown=nestjs:nodejs package.json ./package.json
 COPY --chown=nestjs:nodejs --from=build /app/node_modules ./node_modules
 COPY --chown=nestjs:nodejs --from=build /app/dist ./dist
 COPY --chown=nestjs:nodejs prisma ./prisma

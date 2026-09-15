@@ -42,6 +42,9 @@ async function bootstrap() {
   // Close Prisma connections cleanly on SIGTERM/SIGINT so a rolling
   // (re)deploy never leaves half-open TCP connections behind.
   app.enableShutdownHooks();
-  await app.listen(port);
+  // Bind explicitly to 0.0.0.0: container platforms probe the pod IP, not loopback,
+  // and a server bound only to localhost answers that probe with ECONNREFUSED.
+  await app.listen(port, '0.0.0.0');
+  console.log(`API listening on port ${port}`);
 }
 bootstrap();
