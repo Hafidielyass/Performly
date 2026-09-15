@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-primary: #2f5d50;
+  --brand-primary-hover: #24473d;
+  --brand-tint: #e4eee8;
+  --bg-page: #f6f8f6;
+  --bg-surface: #ffffff;
+  --text-primary: #1e2a24;
+  --text-muted: #5b6b62;
+  --border: #dde5e0;
+  --success: #4f8b6b;
+  --warning: #c0862e;
+  --danger: #b3492f;
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+}
+
+* {
+  border-color: var(--border);
+}

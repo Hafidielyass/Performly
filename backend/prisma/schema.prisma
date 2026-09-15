@@ -1,0 +1,217 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Poste {
+  GERANT
+  ADJOINT
+  VENDEUR
+  FEMME_MENAGE
+  VOITURIER
+  CHAUFFEUR
+}
+
+enum TypeContrat {
+  CDI
+  CDD
+  PRESTATION
+}
+
+enum ProfilEvaluation {
+  GERANT
+  VENDEUR
+}
+
+enum StatutEvaluation {
+  BROUILLON
+  SOUMISE
+  VALIDEE
+}
+
+enum StatutPlanAction {
+  OUVERT
+  EN_COURS
+  CLOS
+}
+
+enum RoleUtilisateur {
+  ADMIN_RH
+  DIRECTEUR_REGIONAL
+  GERANT
+}
+
+model Boutique {
+  id        String   @id @default(cuid())
+  nom       String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  personnes    Personne[]
+  utilisateurs Utilisateur[]
+
+  @@map("boutiques")
+}
+
+model Personne {
+  id               String      @id @default(cuid())
+  boutiqueId       String      @map("boutique_id")
+  boutique         Boutique    @relation(fields: [boutiqueId], references: [id], onDelete: Cascade)
+  nomComplet       String      @map("nom_complet")
+  poste            Poste
+  typeContrat      TypeContrat @map("type_contrat")
+  ancienneteAnnees Decimal     @map("anciennete_annees") @db.Decimal(5, 2)
+  salaireNet       Decimal     @map("salaire_net") @db.Decimal(10, 2)
+  actif            Boolean     @default(true)
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+
+  evaluations Evaluation[]
+  plansAction PlanActionRH[]
+
+  @@index([boutiqueId])
+  @@map("personnes")
+}
+
+model GrillePoste {
+  id                  String  @id @default(cuid())
+  nomPoste            String  @map("nom_poste")
+  effectifMin         Int     @map("effectif_min")
+  effectifMax         Int     @map("effectif_max")
+  salaireNetMoyen     Decimal @map("salaire_net_moyen") @db.Decimal(10, 2)
+  niveauEtudes        String  @map("niveau_etudes")
+  experienceRequise   String  @map("experience_requise")
+  competencesCles     String  @map("competences_cles")
+  missionClientDediee String  @map("mission_client_dediee")
+
+  @@map("grilles_poste")
+}
+
+model CategorieEvaluation {
+  id             String           @id @default(cuid())
+  nom            String
+  applicableA    ProfilEvaluation @map("applicable_a")
+  ordreAffichage Int              @map("ordre_affichage")
+
+  criteres CritereEvaluation[]
+
+  @@map("categories_evaluation")
+}
+
+model CritereEvaluation {
+  id             String              @id @default(cuid())
+  categorieId    String              @map("categorie_id")
+  categorie      CategorieEvaluation @relation(fields: [categorieId], references: [id], onDelete: Cascade)
+  libelle        String
+  ordreAffichage Int                 @map("ordre_affichage")
+
+  scores ScoreCritere[]
+
+  @@index([categorieId])
+  @@map("criteres_evaluation")
+}
+
+model Evaluation {
+  id             String           @id @default(cuid())
+  personneId     String           @map("personne_id")
+  personne       Personne         @relation(fields: [personneId], references: [id], onDelete: Cascade)
+  evaluateurId   String           @map("evaluateur_id")
+  evaluateur     Utilisateur      @relation(fields: [evaluateurId], references: [id])
+  periode        String
+  statut         StatutEvaluation @default(BROUILLON)
+  dateSoumission DateTime?        @map("date_soumission")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  scores      ScoreCritere[]
+  plansAction PlanActionRH[]
+
+  @@index([personneId])
+  @@index([evaluateurId])
+  @@map("evaluations")
+}
+
+model ScoreCritere {
+  id           String            @id @default(cuid())
+  evaluationId String            @map("evaluation_id")
+  evaluation   Evaluation        @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  critereId    String            @map("critere_id")
+  critere      CritereEvaluation @relation(fields: [critereId], references: [id])
+  score        Int?
+  commentaire  String?
+
+  @@unique([evaluationId, critereId])
+  @@index([evaluationId])
+  @@map("scores_critere")
+}
+
+model BaremeNotation {
+  id         String           @id @default(cuid())
+  typeProfil ProfilEvaluation @map("type_profil")
+  borneMin   Decimal          @map("borne_min") @db.Decimal(6, 2)
+  borneMax   Decimal          @map("borne_max") @db.Decimal(6, 2)
+  decisionRh String           @map("decision_rh")
+  ordre      Int
+
+  @@index([typeProfil])
+  @@map("baremes_notation")
+}
+
+model PlanActionRH {
+  id                   String           @id @default(cuid())
+  personneId           String           @map("personne_id")
+  personne             Personne         @relation(fields: [personneId], references: [id], onDelete: Cascade)
+  evaluationId         String           @map("evaluation_id")
+  evaluation           Evaluation       @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  scoreActuel          Decimal?         @map("score_actuel") @db.Decimal(6, 2)
+  decisionRh           String           @map("decision_rh")
+  formationPrioritaire String           @map("formation_prioritaire")
+  delaiRevue           String           @map("delai_revue")
+  dateSuivi            DateTime         @map("date_suivi")
+  decisionFinale       String?          @map("decision_finale")
+  statut               StatutPlanAction @default(OUVERT)
+  createdAt            DateTime         @default(now()) @map("created_at")
+  updatedAt            DateTime         @updatedAt @map("updated_at")
+
+  @@index([personneId])
+  @@index([evaluationId])
+  @@map("plans_action_rh")
+}
+
+model Utilisateur {
+  id             String          @id @default(cuid())
+  email          String          @unique
+  motDePasseHash String          @map("mot_de_passe_hash")
+  role           RoleUtilisateur
+  boutiqueId     String?         @map("boutique_id")
+  boutique       Boutique?       @relation(fields: [boutiqueId], references: [id])
+  actif          Boolean         @default(true)
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  evaluations Evaluation[]
+  journaux    JournalAudit[]
+
+  @@index([boutiqueId])
+  @@map("utilisateurs")
+}
+
+model JournalAudit {
+  id            String      @id @default(cuid())
+  utilisateurId String      @map("utilisateur_id")
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id])
+  action        String
+  entite        String
+  entiteId      String      @map("entite_id")
+  detailsAvant  Json?       @map("details_avant")
+  detailsApres  Json?       @map("details_apres")
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  @@index([utilisateurId])
+  @@index([entite, entiteId])
+  @@map("journal_audit")
+}
