@@ -1,6 +1,16 @@
 // All business endpoints are versioned server-side (see backend main.ts); /health is the only
 // exception and is never called through this client.
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/v1`;
+// NEXT_PUBLIC_* values are inlined into the client bundle at build time, so this cannot
+// be read from the environment at runtime. The deployed API origin is therefore the
+// production default: the host's dashboard variables are not reliably exposed to the
+// build step, which silently left the localhost fallback compiled into the bundle.
+// Override with NEXT_PUBLIC_API_URL when pointing at another API.
+const DEFAULT_API_URL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://performly-ba9686e56.onrunxbuild.com'
+    : 'http://localhost:3001';
+
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_URL}/v1`;
 
 let accessToken: string | null = null;
 
