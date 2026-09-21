@@ -65,7 +65,7 @@ export default function ConsolidePage() {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData}>
             <XAxis dataKey="nom" stroke="var(--text-muted)" fontSize={12} />
-            <YAxis stroke="var(--text-muted)" fontSize={12} allowDecimals={false} />
+            <YAxis stroke="var(--text-muted)" fontSize={12} allowDecimals={false} domain={[0, 'auto']} />
             <Tooltip />
             <Legend />
             <Bar dataKey="Performants" fill="var(--success)" radius={[4, 4, 0, 0]} />

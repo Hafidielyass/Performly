@@ -52,7 +52,7 @@ export default function AccueilPage() {
     () =>
       [...(data ?? [])]
         .sort((a, b) => b.repartition.success - b.repartition.danger - (a.repartition.success - a.repartition.danger))
-        .map((b) => ({ nom: b.nom, Performants: b.repartition.success, 'À remplacer': -b.repartition.danger })),
+        .map((b) => ({ nom: b.nom, Performants: b.repartition.success, 'À remplacer': b.repartition.danger })),
     [data],
   );
 
@@ -87,10 +87,10 @@ export default function AccueilPage() {
           <ResponsiveContainer width="100%" height="90%">
             <BarChart data={classement}>
               <XAxis dataKey="nom" stroke="var(--text-muted)" fontSize={12} />
-              <YAxis stroke="var(--text-muted)" fontSize={12} allowDecimals={false} />
-              <Tooltip formatter={(value: number) => Math.abs(value)} />
+              <YAxis stroke="var(--text-muted)" fontSize={12} allowDecimals={false} domain={[0, 'auto']} />
+              <Tooltip />
               <Bar dataKey="Performants" fill="var(--success)" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="À remplacer" fill="var(--danger)" radius={[0, 0, 4, 4]} />
+              <Bar dataKey="À remplacer" fill="var(--danger)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

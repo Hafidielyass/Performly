@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CheckCircle2, ChevronLeft, ChevronRight, MessageSquarePlus, RotateCcw, Send } from 'lucide-react';
 import { api } from '@/lib/api-client';
+import { invalidateDashboards } from '@/lib/invalidate-dashboards';
 import { periodeCourante, formaterPeriode } from '@/lib/periode';
 import { CategorieEvaluation, Evaluation, Personne } from '@/lib/types';
 import { useAuth } from '@/lib/auth-context';
@@ -63,7 +64,10 @@ export default function EvaluationFormPage() {
 
   const createMutation = useMutation({
     mutationFn: () => api.post<Evaluation>(`/boutiques/${params.id}/evaluations`, { personneId: params.personneId, periode }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['evaluations', params.id, periode, params.personneId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['evaluations', params.id, periode, params.personneId] });
+      invalidateDashboards(queryClient);
+    },
   });
 
   const [scores, setScores] = useState<ScoresState>({});
@@ -94,6 +98,7 @@ export default function EvaluationFormPage() {
     onMutate: () => setSaveStatus('enregistrement'),
     onSuccess: (data) => {
       queryClient.setQueryData(['evaluations', params.id, periode, params.personneId], [data]);
+      invalidateDashboards(queryClient);
       setSaveStatus('enregistre');
     },
   });
@@ -102,6 +107,7 @@ export default function EvaluationFormPage() {
     mutationFn: () => api.post<Evaluation>(`/evaluations/${evaluation?.id}/submit`),
     onSuccess: (data) => {
       queryClient.setQueryData(['evaluations', params.id, periode, params.personneId], [data]);
+      invalidateDashboards(queryClient);
     },
   });
 
@@ -109,6 +115,7 @@ export default function EvaluationFormPage() {
     mutationFn: () => api.post<Evaluation>(`/evaluations/${evaluation?.id}/reouvrir`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['evaluations', params.id, periode, params.personneId] });
+      invalidateDashboards(queryClient);
       setReopenDialogOpen(false);
     },
   });

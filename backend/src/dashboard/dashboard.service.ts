@@ -12,6 +12,31 @@ function profilPourPoste(poste: Poste): ProfilEvaluation | null {
   return null;
 }
 
+/**
+ * Périodes mix two formats - "2026-09" (mois) et "2026-T2" (trimestre). A plain
+ * lexicographic sort puts "2026-T2" after "2026-09" because 'T' > '0', so reversing it
+ * made an April-June quarter look more recent than September. The dashboards default to
+ * the first entry, which meant they opened on the wrong période. Ordering therefore has
+ * to be chronological: a quarter is ranked by the last month it covers.
+ */
+function rangChronologique(periode: string): [number, number] {
+  const trimestre = /^(\d{4})-T([1-4])$/.exec(periode);
+  if (trimestre) return [Number(trimestre[1]), Number(trimestre[2]) * 3];
+  const mois = /^(\d{4})-(\d{2})$/.exec(periode);
+  if (mois) return [Number(mois[1]), Number(mois[2])];
+  return [0, 0];
+}
+
+export function trierPeriodesDesc(periodes: string[]): string[] {
+  return [...periodes].sort((a, b) => {
+    const [anneeA, moisA] = rangChronologique(a);
+    const [anneeB, moisB] = rangChronologique(b);
+    if (anneeA !== anneeB) return anneeB - anneeA;
+    if (moisA !== moisB) return moisB - moisA;
+    return b.localeCompare(a);
+  });
+}
+
 export interface LignePersonne {
   personneId: string;
   nomComplet: string;
@@ -124,7 +149,7 @@ export class DashboardService {
       select: { periode: true },
       distinct: ['periode'],
     });
-    return rows.map((r) => r.periode).sort().reverse();
+    return trierPeriodesDesc(rows.map((r) => r.periode));
   }
 
   async getPeriodesReseau(): Promise<string[]> {
@@ -132,6 +157,6 @@ export class DashboardService {
       select: { periode: true },
       distinct: ['periode'],
     });
-    return rows.map((r) => r.periode).sort().reverse();
+    return trierPeriodesDesc(rows.map((r) => r.periode));
   }
 }

@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Pencil, Plus, Trash2, Upload } from 'lucide-react';
 import { api } from '@/lib/api-client';
+import { invalidateDashboards } from '@/lib/invalidate-dashboards';
 import { useAuth } from '@/lib/auth-context';
 import { Personne } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,8 @@ export default function EffectifPage() {
 
   function invalider() {
     queryClient.invalidateQueries({ queryKey: ['personnes', params.id] });
+    // Effectif changes move effectifTotal and the repartition on both dashboards.
+    invalidateDashboards(queryClient);
   }
 
   const createMutation = useMutation({
